@@ -81,3 +81,12 @@ List all active Goals and Rules.
 ## System Requirements
 - Node.js installed.
 - Dependencies will be auto-installed by `run.sh`.
+
+## Critical Instruction for Agents
+To ensure you always operate with the User's core goals and rules in mind:
+1. **ALWAYS run** `<skill_dir>/run.sh protected` at the start of your session.
+2. **Read** any `goal` or `rule` files returned to fully understand the constraints.
+3. The core files are located at:
+   - `memory_database/long_term/00_core_goals.md`
+   - `memory_database/long_term/00_core_rules.md`
+   You can edit these files directly to update the enduring context.
