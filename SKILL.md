@@ -1,76 +1,83 @@
 ---
 name: FileSystemMemory
-description: A filesystem-based memory system for LLMs to store, retrieve, and manage memories in Markdown format. Supports tiered storage (short/mid/long term) and compression.
+description: A powerful filesystem-based memory system for AI agents, allowing storage, retrieval, and management of memories (Short/Mid/Long-term) in Markdown format via CLI.
 ---
 
 # File System Memory Skill
 
-This skill allows the agent to interact with a local filesystem-based memory database. Memories are stored as Markdown files with YAML frontmatter.
+This skill empowers the AI agent to persist memories, goals, and rules directly into the user's workspace as Markdown files. 
 
-## Tools
+## Capability Overview
 
-### `create_memory`
-Creates a new memory file.
-- **Arguments**:
-  - `content` (string): The body of the memory.
-  - `title` (string): Distinctive title for the memory.
-  - `tags` (array of strings, optional): Tags for categorization.
-  - `tier` (string, optional): One of `short_term` (default), `mid_term`, `long_term`.
-  - `type` (string, optional): `memory` (default), `goal`, `rule`. Goals and Rules are protected from compression.
+The memory system is file-based and operates in the current working directory under `./memory_database`.
+- **Hierarchical Storage**: `short_term` -> `mid_term` -> `long_term`.
+- **Compression Workflow**: Agents can summarize `short_term` memories into `mid_term` to save context, while `archive` stores the raw logs.
+- **Protected Memories**: Items marked as `goal` or `rule` are never compressed or archived automatically, ensuring they remain active.
 
-### `read_memory`
-Reads a memory by filename.
-- **Arguments**:
-  - `filename` (string): The filename to read (e.g., `my_memory.md`).
-  - `tier` (string, optional): Specific tier to look in.
+## Usage Instructions for Agent
 
-### `update_memory`
-Updates an existing memory.
-- **Arguments**:
-  - `filename` (string): The filename to update.
-  - `content` (string, optional): New content.
-  - `tags` (array of strings, optional): New tags.
-  - `tier` (string, optional): Move to a new tier (e.g., promote to `mid_term`).
+**IMPORTANT**: 
+1. The tools are accessed via the `run.sh` script located in this skill's directory.
+2. This script automatically installs dependencies (`npm install`) on first run if needed.
+3. You **MUST** resolve the absolute path to `run.sh` before executing commands.
+4. Use `<absolute_path_to_skill>/run.sh <command> ...`
 
-### `search_memory`
-Searches for memories by text content or title.
-- **Arguments**:
-  - `query` (string): The search query.
+### Commands
 
-### `compress_tier`
-Helper to retrieve memories for compression.
-- **Arguments**:
-  - `tier` (string): The tier to compress (e.g., `short_term`).
-- **Returns**: A combined string of all non-protected memories in that tier, and a list of filenames to be archived.
-- **Usage**:
-  1. Call `compress_tier`.
-  2. Summarize the returned content.
-  3. Call `create_memory` with the summary (placing it in the next tier up).
-  4. Call `archive_memories` with the list of filenames returned by `compress_tier`.
+#### 1. Create Memory
+Save a new memory, goal, or rule.
+```bash
+<skill_dir>/run.sh create "<title>" "<content>" [--tier short_term|mid_term|long_term] [--type memory|goal|rule] [--tags tag1,tag2]
+```
+- **Example**: `.../run.sh create "User Preference" "User prefers dark mode" --tags ui,config`
 
-### `archive_memories`
-Moves memories to the `archive` tier.
-- **Arguments**:
-  - `filenames` (array of strings): List of filenames to archive.
-
-### `retrieve_protected_context`
-Retrieves all `goal` and `rule` memories to provide persistent context.
-- **Arguments**: none.
-
-## Examples
-
-### Creating a Goal
-```javascript
-create_memory("I want to learn Rust.", { title: "Rust Learning Goal", type: "goal", tags: ["learning", "rust"] })
+#### 2. Read Memory
+Retrieve a specific memory file.
+```bash
+<skill_dir>/run.sh read "<filename>" [--tier tier]
 ```
 
-### Compressing Short Term Memory
-```javascript
-// Step 1: Get content
-const data = compress_tier("short_term");
-// Step 2: Agent summarizes data.content -> "User studied loops and variables."
-// Step 3: Save summary to mid_term
-create_memory("User studied loops and variables.", { title: "Rust Progress Week 1", tier: "mid_term" });
-// Step 4: Archive old files
-archive_memories(data.files);
+#### 3. Update Memory
+Modify content or move to a different tier.
+```bash
+<skill_dir>/run.sh update "<filename>" [--content "new content"] [--tier new_tier] [--tags tag1,tag2]
 ```
+
+#### 4. List Memories
+View available memories, optionally filtered.
+```bash
+<skill_dir>/run.sh list [--tier tier] [--type memory|goal|rule]
+```
+
+#### 5. Search Memories
+Find memories by content or title.
+```bash
+<skill_dir>/run.sh search "<query>"
+```
+
+#### 6. Compress & Summarize
+Get content for summarization.
+```bash
+<skill_dir>/run.sh compress <tier>
+```
+- **Workflow**:
+    1. Run `compress <tier>` to get raw text.
+    2. Summarize the text internally.
+    3. Save the summary with `create` (to the next tier up).
+    4. Archive the old files with `archive`.
+
+#### 7. Archive Memories
+Move files to the archive folder.
+```bash
+<skill_dir>/run.sh archive "file1.md,file2.md"
+```
+
+#### 8. Check Protected Context
+List all active Goals and Rules.
+```bash
+<skill_dir>/run.sh protected
+```
+
+## System Requirements
+- Node.js installed.
+- Dependencies will be auto-installed by `run.sh`.
