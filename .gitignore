@@ -88,7 +88,7 @@ coverage/
 .pnp.*
 
 # Optional memory database (local only)
-# memory_database/archive/
-# memory_database/short_term/
-# memory_database/mid_term/
-# memory_database/long_term/
+memory_database/archive/
+memory_database/short_term/
+memory_database/mid_term/
+memory_database/long_term/
