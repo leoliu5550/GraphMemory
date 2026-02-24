@@ -1,5 +1,5 @@
 ---
-name: FileSystemMemory
+name: GraphMemory
 description: A powerful filesystem-based memory system for AI agents, allowing storage, retrieval, and management of memories (Short/Mid/Long-term) in Markdown format via CLI.
 ---
 
