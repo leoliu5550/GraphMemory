@@ -22,7 +22,7 @@ function sanitizeFilename(title) {
     return title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.md';
 }
 
-export async function createMemory(content, { title, tags = [], tier = 'short_term', type = 'memory' } = {}) {
+export async function createMemory(content, { title, tags = [], tier = 'short_term', type = 'memory', related = [] } = {}) {
     if (!TIERS.includes(tier)) {
         throw new Error(`Invalid tier: ${tier}. Must be one of ${TIERS.join(', ')}`);
     }
@@ -42,6 +42,10 @@ export async function createMemory(content, { title, tags = [], tier = 'short_te
         updated_at: new Date().toISOString(),
         tier
     };
+
+    if (related && related.length > 0) {
+        frontmatter.related = related;
+    }
 
     if (type === 'goal' || type === 'rule') {
         frontmatter.protected = true;
@@ -76,7 +80,7 @@ export async function readMemory(filename, tier = null) {
     return { ...parsed.data, content: parsed.content, tier };
 }
 
-export async function updateMemory(filename, content, { tags, tier } = {}) {
+export async function updateMemory(filename, content, { tags, tier, related } = {}) {
     const current = await readMemory(filename);
     const oldTier = current.tier;
     const newTier = tier || oldTier;
@@ -100,6 +104,7 @@ export async function updateMemory(filename, content, { tags, tier } = {}) {
     };
     
     if (tags) newFrontmatter.tags = tags;
+    if (related) newFrontmatter.related = related;
     // Don't overwrite protected content if not explicitly handled? 
     // For now assuming update is allowed, but compression is what respects 'protected'
 
@@ -136,7 +141,8 @@ export async function listMemories({ tier, type } = {}) {
                 tier: t,
                 title: parsed.data.title,
                 type: parsed.data.type,
-                tags: parsed.data.tags
+                tags: parsed.data.tags,
+                related: parsed.data.related || []
             });
         }
     }
@@ -185,4 +191,26 @@ export async function archiveMemories(filenames) {
         }
     }
     return results;
+}
+
+export async function generateGraph() {
+    const memories = await listMemories();
+    let mermaidStr = 'graph TD;\n';
+    
+    // Add nodes
+    for (const m of memories) {
+        const titleSafe = m.title.replace(/["']/g, '');
+        mermaidStr += `    ${m.filename.replace('.md', '')}["${titleSafe}"];\n`;
+    }
+
+    // Add edges
+    for (const m of memories) {
+        const sourceId = m.filename.replace('.md', '');
+        for (const rel of m.related || []) {
+            const targetId = rel.replace('.md', '');
+            mermaidStr += `    ${sourceId} --> ${targetId};\n`;
+        }
+    }
+
+    return mermaidStr;
 }

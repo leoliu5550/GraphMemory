@@ -6,7 +6,8 @@ import {
     searchMemory, 
     listMemories, 
     getMemoriesForCompression, 
-    archiveMemories 
+    archiveMemories,
+    generateGraph
 } from './memory_manager.js';
 
 const [,, command, ...args] = process.argv;
@@ -20,7 +21,8 @@ async function main() {
                 const tier = getFlag(args, '--tier') || 'short_term';
                 const type = getFlag(args, '--type') || 'memory';
                 const tags = getFlag(args, '--tags')?.split(',') || [];
-                const result = await createMemory(content, { title, tags, tier, type });
+                const related = getFlag(args, '--related')?.split(',') || [];
+                const result = await createMemory(content, { title, tags, tier, type, related });
                 console.log(JSON.stringify(result, null, 2));
                 break;
             }
@@ -36,7 +38,8 @@ async function main() {
                 const content = getFlag(args, '--content');
                 const tier = getFlag(args, '--tier');
                 const tags = getFlag(args, '--tags')?.split(',');
-                const result = await updateMemory(filename, content, { tier, tags });
+                const related = getFlag(args, '--related')?.split(',');
+                const result = await updateMemory(filename, content, { tier, tags, related });
                 console.log(JSON.stringify(result, null, 2));
                 break;
             }
@@ -71,9 +74,14 @@ async function main() {
                 console.log(JSON.stringify({ goals, rules }, null, 2));
                 break;
             }
+            case 'graph': {
+                const result = await generateGraph();
+                console.log(result);
+                break;
+            }
             default:
                 console.log("Usage: node app.js <command> [args]");
-                console.log("Commands: create, read, update, list, search, compress, archive, protected");
+                console.log("Commands: create, read, update, list, search, compress, archive, protected, graph");
         }
     } catch (error) {
         console.error(JSON.stringify({ error: error.message }, null, 2));

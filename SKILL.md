@@ -27,9 +27,9 @@ The memory system is file-based and operates in the current working directory un
 #### 1. Create Memory
 Save a new memory, goal, or rule.
 ```bash
-<skill_dir>/run.sh create "<title>" "<content>" [--tier short_term|mid_term|long_term] [--type memory|goal|rule] [--tags tag1,tag2]
+<skill_dir>/run.sh create "<title>" "<content>" [--tier short_term|mid_term|long_term] [--type memory|goal|rule] [--tags tag1,tag2] [--related mem1,mem2]
 ```
-- **Example**: `.../run.sh create "User Preference" "User prefers dark mode" --tags ui,config`
+- **Example**: `.../run.sh create "User Preference" "User prefers dark mode" --tags ui,config --related "other_memory.md"`
 
 #### 2. Read Memory
 Retrieve a specific memory file.
@@ -40,7 +40,7 @@ Retrieve a specific memory file.
 #### 3. Update Memory
 Modify content or move to a different tier.
 ```bash
-<skill_dir>/run.sh update "<filename>" [--content "new content"] [--tier new_tier] [--tags tag1,tag2]
+<skill_dir>/run.sh update "<filename>" [--content "new content"] [--tier new_tier] [--tags tag1,tag2] [--related mem1,mem2]
 ```
 
 #### 4. List Memories
@@ -76,6 +76,12 @@ Move files to the archive folder.
 List all active Goals and Rules.
 ```bash
 <skill_dir>/run.sh protected
+```
+
+#### 9. Generate Relationship Graph
+Outputs a Mermaid.js graph showing how memories are related to each other.
+```bash
+<skill_dir>/run.sh graph
 ```
 
 ## System Requirements
